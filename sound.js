@@ -653,21 +653,22 @@ var notes = [{
 var sound  = function () {
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     return {
-        note : function (freq) {
+        note : function (freq, time, delay) {
+            if(!time){time = 0.5};
             var oscillator = audioCtx.createOscillator();
             var gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             oscillator.type = 'sine'; // sine wave — other values are 'square', 'sawtooth', 'triangle' and 'custom'
             oscillator.frequency.value = freq; // value in hertz
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime+delay);
+            oscillator.stop(audioCtx.currentTime +delay+ 0.5);
         }
 }
 }();
 $( document ).ready(function() {
     $('#play').click(function () {
-        sound.note(440);
+        analyseText($('#ta').val());
     });
     notes.forEach(function(item){
         var keyid = item.name.replace('#',"_")+item.position;
@@ -683,3 +684,24 @@ $( document ).ready(function() {
         })
     })
 });
+
+function analyseText(text){
+    var var1 = text.split(" ");
+    var bpm = var1[1].split("bpm");
+    var timeposition = 0;
+
+    var2 = var1.splice(2);
+
+    var2.forEach(function(item){
+        var nt = item.split("-");
+        var ant = nt[0].substring(0, nt.length -1);
+        var pos = nt[0].substring(nt.length-1, nt.length);
+
+        notes.forEach(function(note_item){
+            if(note_item.name === ant && note_item.position === parseInt(pos)){
+                sound.note(note_item.frequency, (nt[1]/bpm[0])*60, timeposition);
+                timeposition += (nt[1]/bpm[0])*60;
+            }
+        });
+    });
+}
