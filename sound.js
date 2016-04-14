@@ -655,6 +655,7 @@ var sound  = function () {
     return {
         note : function (freq, time, delay) {
             if(!time){time = 0.5};
+            if(!delay){delay = 0};
             var oscillator = audioCtx.createOscillator();
             var gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
