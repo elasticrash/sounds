@@ -652,38 +652,89 @@ var notes = [{
 }];
 var sound  = function () {
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var ctx;
+    var oscillator;
+    var dataArray;
+    var analyser;
+    var gainNode = audioCtx.createGain();
+
     return {
         note : function (freq, time, delay) {
-            if(!time){time = 0.5};
-            if(!delay){delay = 0};
-            var oscillator = audioCtx.createOscillator();
-            var gainNode = audioCtx.createGain();
+            if(!time){time = 0.5;}
+            if(!delay){delay = 0;}
+            oscillator = audioCtx.createOscillator();
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             oscillator.type = 'sine'; // sine wave — other values are 'square', 'sawtooth', 'triangle' and 'custom'
             oscillator.frequency.value = freq; // value in hertz
             oscillator.start(audioCtx.currentTime+delay);
             oscillator.stop(audioCtx.currentTime +delay+ 0.5);
+        },
+        analyser : function () {
+            ctx = $("#canvas")[0].getContext('2d');
+            analyser = audioCtx.createAnalyser();
+            gainNode.connect(analyser);
+            analyser.fftSize = 2048;
+            var bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+            function draw () {
+                requestAnimationFrame(draw);
+                analyser.getByteTimeDomainData(dataArray);
+                ctx.fillStyle = 'rgb(200, 200, 200)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgb(0, 0, 0)';
+
+                ctx.beginPath();
+                var sliceWidth = canvas.width * 1.0 / analyser.fftSize;
+                var x = 0;
+                for(var i = 0; i < analyser.fftSize; i++) {
+
+                    var v = dataArray[i] / 128.0;
+                    var y = v * canvas.height/2;
+
+                    if(i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+
+                    x += sliceWidth;
+                }
+                ctx.lineTo(canvas.width, canvas.height/2);
+                ctx.stroke();
+            }
+            draw();
+
+        },
+        draw: {
+
         }
 }
 }();
+
 $( document ).ready(function() {
-    $('#play').click(function () {
-        analyseText($('#ta').val());
-    });
-    notes.forEach(function(item){
-        var keyid = item.name.replace('#',"_")+item.position;
-        if(item.name.indexOf('#') === -1) {
-            //white keys
-            $('.piano').append("<li class='white' id='" + keyid + "'></li>");
-        }else{
-            //black keys
-            $('.piano').append("<li class='black' id='" + keyid + "'></li>");
-        }
-        $('#'+keyid).click(function () {
-            sound.note(item.frequency);
+    if($('.piano') && $('#play')) {
+        $('#play').click(function () {
+            analyseText($('#ta').val());
+        });
+        notes.forEach(function (item) {
+            var keyid = item.name.replace('#', "_") + item.position;
+            if (item.name.indexOf('#') === -1) {
+                //white keys
+                $('.piano').append("<li class='white' id='" + keyid + "'></li>");
+            } else {
+                //black keys
+                $('.piano').append("<li class='black' id='" + keyid + "'></li>");
+            }
+            $('#' + keyid).click(function () {
+                sound.note(item.frequency);
+            })
         })
-    })
+    }
+
+    sound.analyser();
 });
 
 function analyseText(text){
