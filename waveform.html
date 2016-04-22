@@ -7,11 +7,33 @@
     <script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
     <script language="JavaScript" type="text/javascript" src="sound.js"></script>
 <script>
+    $( document ).ready(function() {
+        if($('.piano') && $('#play')) {
+            $('#play').click(function () {
+                analyseText($('#ta').val());
+            });
+            notes.forEach(function (item) {
+                var keyid = item.name.replace('#', "_") + item.position;
+                if (item.name.indexOf('#') === -1) {
+                    //white keys
+                    $('.piano').append("<li class='white' id='" + keyid + "'></li>");
+                } else {
+                    //black keys
+                    $('.piano').append("<li class='black' id='" + keyid + "'></li>");
+                }
+                $('#' + keyid).click(function () {
+                    sound.note(item.frequency);
+                })
+            })
+        }
+        sound.analyser();
+    });
 
 </script>
 </head>
 <body>
-<canvas id="canvas" style="width: 500px; height: 50px"></canvas>
+<canvas id="canvas" width=700 height=100"></canvas>
+<textarea id="ta">BEAT: 100bpm E4-0.5 E4-0.5 E4-0.5 C4-0.5 E4-0.5 G4-0.5 G3-0.5 C4-0.5 G4-0.5 E4-0.5 A4-0.5 B4-0.5 A#4-0.5 A4-0.5 G4-0.5 E4-0.5 G4-0.5</textarea>
 <button id="play">play</button>
 <ul class="piano"></ul>
 </body>

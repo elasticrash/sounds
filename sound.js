@@ -650,6 +650,15 @@ var notes = [{
     frequency: 7902.13,
     wavelength: 4.37
 }];
+
+var duration = [{
+    name: 'qr',
+    time: 0
+},{
+   name: 'q',
+    time: 0.25
+}];
+
 var sound  = function () {
     var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     var ctx;
@@ -714,29 +723,6 @@ var sound  = function () {
 }
 }();
 
-$( document ).ready(function() {
-    if($('.piano') && $('#play')) {
-        $('#play').click(function () {
-            analyseText($('#ta').val());
-        });
-        notes.forEach(function (item) {
-            var keyid = item.name.replace('#', "_") + item.position;
-            if (item.name.indexOf('#') === -1) {
-                //white keys
-                $('.piano').append("<li class='white' id='" + keyid + "'></li>");
-            } else {
-                //black keys
-                $('.piano').append("<li class='black' id='" + keyid + "'></li>");
-            }
-            $('#' + keyid).click(function () {
-                sound.note(item.frequency);
-            })
-        })
-    }
-
-    sound.analyser();
-});
-
 function analyseText(text){
     var var1 = text.split(" ");
     var bpm = var1[1].split("bpm");
@@ -757,3 +743,61 @@ function analyseText(text){
         });
     });
 }
+
+function analyseVex(vnotes) {
+    var timeposition = 0;
+    bpm = 100;
+
+    vnotes.forEach(function(vnote){
+        notes.forEach(function(note){
+            var key = vnote.keys[0].split('/');
+            if(note.name === key[0].toUpperCase()  && note.position === parseInt(key[1])){
+                duration.forEach(function(dr) {
+                    if(dr.name == vnote.duration) {
+                        sound.note(note.frequency, ( dr.time/ bpm) * 60, timeposition);
+                        timeposition += (dr.time / bpm) * 60;
+                    }
+                });
+            }
+        });
+    });
+}
+
+var vexComposer = function (vnotes) {
+
+    var tt = $("#vex");
+
+    var staves = notes.length/4;
+    var i = 0;
+    for(i;i < staves; i+=1){
+        tt.append('<div class="row"><canvas id="vex'+i +'" width=700 height=100"></canvas></div>');
+
+        var renderer = new Vex.Flow.Renderer($("#vex"+i)[0],
+            Vex.Flow.Renderer.Backends.CANVAS);
+
+        var ctx = renderer.getContext();
+
+        var stave = new Vex.Flow.Stave(10, 0, 500);
+        stave.addClef("treble").setContext(ctx).draw();
+
+        // Create a voice in 4/4
+        var voice = new Vex.Flow.Voice({
+            num_beats: 4,
+            beat_value: 4,
+            resolution: Vex.Flow.RESOLUTION
+        });
+
+        // Add notes to voice
+        voice.addTickables(vnotes.slice(i*4,(i+1)*4));
+
+        // Format and justify the notes to 500 pixels
+        var formatter = new Vex.Flow.Formatter().
+        joinVoices([voice]).format([voice], 500);
+
+        // Render voice
+        voice.draw(ctx, stave);
+    }
+
+
+
+};
