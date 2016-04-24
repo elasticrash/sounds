@@ -19,30 +19,33 @@
             sound.analyser();
 
             var vexnotes = [
+                    //1
                 new Vex.Flow.StaveNote({keys: ["f#/4", "e/5"], duration: "q"})
                         .addAccidental(0, new Vex.Flow.Accidental("#")),
                 new Vex.Flow.StaveNote({keys: ["f/4", "e/5"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
                 new Vex.Flow.StaveNote({keys: ["f/4μ", "e/5"], duration: "q"}),
+                    //2
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
                 new Vex.Flow.StaveNote({keys: ["f#/4", "c/5"], duration: "q"})
                         .addAccidental(0, new Vex.Flow.Accidental("#")),
                 new Vex.Flow.StaveNote({keys: ["f/4", "e/5"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
+                    //3
                 new Vex.Flow.StaveNote({keys: ["g/4","b/4", "g/5"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
+                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "hr"}),
+                    //4
                 new Vex.Flow.StaveNote({keys: ["g/4"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
+                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "hr"}),
+                    //5
                 new Vex.Flow.StaveNote({keys: ["e/4", "c/5"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
                 new Vex.Flow.StaveNote({keys: ["c/4", "g/4"], duration: "q"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
+                    //6
+                new Vex.Flow.StaveNote({keys: ["b/4"], duration: "hr"}),
                 new Vex.Flow.StaveNote({keys: ["g/3", "e/4"], duration: "q"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
@@ -54,7 +57,7 @@
                 addAccidental(0, new Vex.Flow.Accidental("#")).
                 addAccidental(1, new Vex.Flow.Accidental("#")),
                 new Vex.Flow.StaveNote({keys: ["b/4"], duration: "qr"}),
-                new Vex.Flow.StaveNote({keys: ["c/4", "g/4"], duration: "q"}),
+                new Vex.Flow.StaveNote({keys: ["c/4", "a/4"], duration: "q"}),
             ];
 
             $('#play').click(function () {
