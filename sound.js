@@ -668,16 +668,22 @@ var sound  = function () {
     var gainNode = audioCtx.createGain();
 
     return {
-        note : function (freq, time, delay) {
-            if(!time){time = 0.5;}
-            if(!delay){delay = 0;}
-            oscillator = audioCtx.createOscillator();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sine'; // sine wave — other values are 'square', 'sawtooth', 'triangle' and 'custom'
-            oscillator.frequency.value = freq; // value in hertz
-            oscillator.start(audioCtx.currentTime+delay);
-            oscillator.stop(audioCtx.currentTime +delay+ 0.5);
+        note : function (freq, time, delay, noteLength) {
+            if (!delay) {
+                delay = 0;
+            }
+            if (time === 0) {
+                setTimeout(function () {
+                }, noteLength);
+            } else {
+                oscillator = audioCtx.createOscillator();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'sine'; // sine wave — other values are 'square', 'sawtooth', 'triangle' and 'custom'
+                oscillator.frequency.value = freq; // value in hertz
+                oscillator.start(audioCtx.currentTime + delay);
+                oscillator.stop(audioCtx.currentTime + delay + 0.5);
+            }
         },
         analyser : function () {
             ctx = $("#canvas")[0].getContext('2d');
@@ -746,28 +752,50 @@ function analyseText(text){
 
 function analyseVex(vnotes) {
     var timeposition = 0;
-    bpm = 100;
+    bpm = 80;
+    var skip = 0;
 
-    vnotes.forEach(function(vnote){
-        notes.forEach(function(note){
-            var key = vnote.keys[0].split('/');
-            if(note.name === key[0].toUpperCase()  && note.position === parseInt(key[1])){
-                duration.forEach(function(dr) {
-                    if(dr.name == vnote.duration) {
-                        sound.note(note.frequency, ( dr.time/ bpm) * 60, timeposition);
-                        timeposition += (dr.time / bpm) * 60;
-                    }
-                });
-            }
+    var funCollection = [];
+    var timeCollection = [];
+    vnotes.forEach(function (vnote) {
+        var sKey = [];
+
+        vnote.keys.forEach(function (k) {
+            sKey.push(k.split('/'));
         });
+
+        sKey.forEach(function (idnote) {
+            notes.forEach(function (note) {
+                if (note.name === idnote[0].toUpperCase() && note.position === parseInt(idnote[1])) {
+                    duration.forEach(function (dr) {
+                        skip = dr.time;
+                        if (dr.name == vnote.duration) {
+                            var time = dr.time;
+                            var noteLength = dr.time;
+                            if (vnote.glyph.rest === true) {
+                                time = 0;
+                            }
+                            timeCollection.push(timeposition);
+                            var fn = wrapFunction(sound.note, this, [note.frequency, ( time / bpm) * 60, timeposition, noteLength]);
+                            funCollection.push(fn);
+                        }
+                    });
+                }
+            });
+        });
+        timeposition += (skip / bpm) * 60;
     });
+
+    while (funCollection.length > 0) {
+        (funCollection.shift())();
+    }
 }
 
 var vexComposer = function (vnotes) {
 
     var tt = $("#vex");
 
-    var staves = notes.length/4;
+    var staves = (vnotes.length/4);
     var i = 0;
     for(i;i < staves; i+=1){
         tt.append('<div class="row"><canvas id="vex'+i +'" width=700 height=100"></canvas></div>');
@@ -797,7 +825,10 @@ var vexComposer = function (vnotes) {
         // Render voice
         voice.draw(ctx, stave);
     }
-
-
-
 };
+
+var wrapFunction = function(fn, context, params) {
+    return function() {
+        fn.apply(context, params);
+    };
+}
