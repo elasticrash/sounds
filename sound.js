@@ -652,11 +652,28 @@ var notes = [{
 }];
 
 var duration = [{
-    name: 'qr',
-    time: 0
+    name: 'w',
+    time: 1,
+    tick: 16
+},{
+    name: 'h',
+    time: 0.5,
+    tick: 8
 },{
    name: 'q',
-    time: 0.25
+    time: 0.25,
+    tick: 4
+},{
+    name: '8',
+    time: 0.125,
+    tick: 2
+},{
+    name: '16',
+    time: 0.0625,
+    tick: 1
+},{
+    name: 'qr',
+    time: 0
 }];
 
 var sound  = function () {
@@ -768,8 +785,8 @@ function analyseVex(vnotes) {
             notes.forEach(function (note) {
                 if (note.name === idnote[0].toUpperCase() && note.position === parseInt(idnote[1])) {
                     duration.forEach(function (dr) {
-                        skip = dr.time;
                         if (dr.name == vnote.duration) {
+                            skip = dr.time;
                             var time = dr.time;
                             var noteLength = dr.time;
                             if (vnote.glyph.rest === true) {
@@ -794,37 +811,50 @@ function analyseVex(vnotes) {
 var vexComposer = function (vnotes) {
 
     var tt = $("#vex");
+    var num_beats = 4;
+    var beat_value = 4;
 
-    var staves = (vnotes.length/4);
-    var i = 0;
-    for(i;i < staves; i+=1){
-        tt.append('<div class="row"><canvas id="vex'+i +'" width=700 height=100"></canvas></div>');
+    var staveNote = [];
+    var noteStaveLink = [];
+    var stackDuration = 0;
 
-        var renderer = new Vex.Flow.Renderer($("#vex"+i)[0],
+    vnotes.forEach(function (nt) {
+        duration.forEach(function (dr) {
+          if(nt.duration === dr.name){
+              stackDuration += dr.tick;
+              noteStaveLink.push(nt);
+          }
+            if(stackDuration == (num_beats* beat_value)){
+                staveNote.push(noteStaveLink);
+                noteStaveLink = [];
+                stackDuration = 0;
+            }
+            if(stackDuration > (num_beats* beat_value)){
+                throw "exceeded limit";
+            }
+        });
+    });
+
+    staveNote.forEach(function (sN, index) {
+        tt.append('<div class="row"><canvas id="vex' + index + '" width=700 height=100"></canvas></div>');
+        var renderer = new Vex.Flow.Renderer($("#vex" + index)[0],
             Vex.Flow.Renderer.Backends.CANVAS);
-
         var ctx = renderer.getContext();
-
         var stave = new Vex.Flow.Stave(10, 0, 500);
         stave.addClef("treble").setContext(ctx).draw();
 
-        // Create a voice in 4/4
         var voice = new Vex.Flow.Voice({
-            num_beats: 4,
-            beat_value: 4,
+            num_beats: num_beats,
+            beat_value: beat_value,
             resolution: Vex.Flow.RESOLUTION
         });
 
-        // Add notes to voice
-        voice.addTickables(vnotes.slice(i*4,(i+1)*4));
-
-        // Format and justify the notes to 500 pixels
+        voice.addTickables(sN);
         var formatter = new Vex.Flow.Formatter().
         joinVoices([voice]).format([voice], 500);
-
-        // Render voice
         voice.draw(ctx, stave);
-    }
+    });
+
 };
 
 var wrapFunction = function(fn, context, params) {
